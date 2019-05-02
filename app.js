@@ -6,21 +6,30 @@ var budgetController = (function() {
    };
 
    var Income = function(id, desc, value) {  //income function constructor
-    this.id = id;
-    this.desc = desc;
-    this.value = value;
+        this.id = id;
+        this.desc = desc;
+        this.value = value;
     };
-
-var data = {
-    allItems: {
-        inc: [],
-        exp: []
-    },
-    totals: {
-        inc: 0,
-        exp: 0
+    
+    var calculateTotal = (type) => {
+        let sum = 0;
+        data.allItems[type].forEach((current) => {
+            sum += current.value;
+        });
+        data.totals[type] = sum;
     }
-};
+
+    var data = {
+        allItems: {
+            inc: [],
+            exp: []
+        },
+        totals: {
+            inc: 0,
+            exp: 0
+        },
+        budget: 0
+    };
 
 return {
     addItem: function(type, desc, val) {
@@ -38,7 +47,14 @@ return {
         }
         data.allItems[type].push(newItem);
         return newItem;
-    }};
+    },
+    calculateBudget: () => {
+
+        //Calculate the total income and expenses
+        calculateTotal('inc');
+        calculateTotal('exp');
+    }
+};
 
 })();
 
@@ -57,17 +73,25 @@ var UIController = (function() {
             return {
                 type: document.querySelector(DOMStrings.inputType).value, //inc or exp
                 desc: document.querySelector(DOMStrings.inputDesc).value,
-                value: document.querySelector(DOMStrings.inputValue).value,
+                value: parseFloat(document.querySelector(DOMStrings.inputValue).value),
             }
         },
         addListItem: function(obj, type) {
             var html, element;
             if(type === 'inc') {
                 element = DOMStrings.incomeContainer;
-                html = `<div class="item clearfix" id="income-${obj.id}"><div class="item__description">${obj.desc}</div><div class="right clearfix"><div class="item__value">${obj.value}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>`;
+                html = `<div class="item clearfix" id="income-${obj.id}">
+                <div class="item__description">${obj.desc}</div><div class="right clearfix">
+                <div class="item__value">${obj.value}</div>
+                <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
+                </div></div></div>`;
             } else if (type === 'exp'){
                 element = DOMStrings.expensesContainer;
-                html = `<div class="item clearfix" id="expense-${obj.id}"><div class="item__description">${obj.desc}</div><div class="right clearfix"><div class="item__value">${obj.value}</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>`;
+                html = `<div class="item clearfix" id="expense-${obj.id}">
+                <div class="item__description">${obj.desc}</div><div class="right clearfix">
+                <div class="item__value">${obj.value}</div><div class="item__percentage">21%</div>
+                <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
+                </div></div></div>`;
             }
             document.querySelector(element).insertAdjacentHTML('beforeend', html);
         },
@@ -105,10 +129,27 @@ var controller = (function(budgetCtl, UICtl) {
     const controlAddItem = () => {
         var input, newItem;
         
+        //1. Get the field input data
         input = UICtl.getInput();
+        if(input.desc !== '' && !isNaN(input.value) && input.value > 0){
+        //2. Add the item to the budget controller
         newItem = budgetCtl.addItem(input.type, input.desc, input.value);
+        //3. Add the item to the UI
         UICtl.addListItem(newItem, input.type);
+        //4. Clear the fields
         UICtl.clearFields();
+        //5. Calculate and update budget
+        updateBudget();
+        };
+    };
+
+    const updateBudget = () => {
+        let newBudget = 0;
+        //1. Calculate the budget
+
+        //2. Return the budget
+
+        //3. Display the budget in the UI
     };
 
 return {
