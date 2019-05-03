@@ -49,6 +49,16 @@ return {
         data.allItems[type].push(newItem);
         return newItem;
     },
+    deleteItem: (type, id) => {
+        let ids = data.allItems[type].map((current) => {
+            return current.id;
+        });
+        let index = ids.indexOf(id);
+
+        if(index !== -1) {
+            data.allItems[type].splice(index, 1);
+        }
+    },
     calculateBudget: () => {
 
         //Calculate the total income and expenses
@@ -68,6 +78,9 @@ return {
             totalExp: data.totals.exp,
             percentage: data.percentage
         }
+    },
+    test: () => {
+        return data;
     }
 };
 
@@ -84,7 +97,8 @@ var UIController = (function() {
             budgetLabel: '.budget__value',
             incomeLabel: '.budget__income--value',
             expenseLabel: '.budget__expenses--value',
-            percentageLabel: '.budget__expenses--percentage'
+            percentageLabel: '.budget__expenses--percentage',
+            container: '.container'
         }
 
    return {
@@ -99,14 +113,14 @@ var UIController = (function() {
             var html, element;
             if(type === 'inc') {
                 element = DOMStrings.incomeContainer;
-                html = `<div class="item clearfix" id="income-${obj.id}">
+                html = `<div class="item clearfix" id="inc-${obj.id}">
                 <div class="item__description">${obj.desc}</div><div class="right clearfix">
                 <div class="item__value">${obj.value}</div>
                 <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
                 </div></div></div>`;
             } else if (type === 'exp'){
                 element = DOMStrings.expensesContainer;
-                html = `<div class="item clearfix" id="expense-${obj.id}">
+                html = `<div class="item clearfix" id="exp-${obj.id}">
                 <div class="item__description">${obj.desc}</div><div class="right clearfix">
                 <div class="item__value">${obj.value}</div><div class="item__percentage">21%</div>
                 <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
@@ -135,6 +149,10 @@ var UIController = (function() {
             } else {
                 document.querySelector(DOMStrings.percentageLabel).textContent = '---';
             }
+        },
+        deleteListItem: (selectorID) => {
+            element = document.getElementById(selectorID);
+            element.parentNode.removeChild(element);
         }
    };
 })();
@@ -152,6 +170,7 @@ var controller = (function(budgetCtl, UICtl) {
                 controlAddItem();
             }
         });
+        document.querySelector(DOM.container).addEventListener('click', controlDeleteItem);
     };
 
 
@@ -169,9 +188,26 @@ var controller = (function(budgetCtl, UICtl) {
         UICtl.clearFields();
         //5. Calculate and update budget
         updateBudget();
-        };
+        };        
+    };
 
-        
+    const controlDeleteItem = (event) => {
+        let itemID, splitID, type, ID;
+        //Moving up to the node for the whole item (inc or expense)
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+        if(itemID){
+            //Break the id into 2 parts  i.e. id-1
+            splitID = itemID.split('-');
+            type = splitID[0];
+            ID = parseInt(splitID[1]);
+
+            //1. Delete the item from the data structure
+            budgetCtl.deleteItem(type, ID);
+            //2. Delete item from the UI
+            UICtl.deleteListItem(itemID);
+            //3. Update and show the new budget
+            updateBudget();
+        }
     };
 
     const updateBudget = () => {
